@@ -216,7 +216,6 @@
         .slot-btn:hover { background: var(--gray-100); }
         .slot-btn[data-state="primary"] { background: var(--black); color: var(--white); }
         .slot-btn[data-state="secondary"] { background: var(--gray-400); color: var(--white); }
-        .slot-btn.disabled { opacity: 0.4; cursor: not-allowed; }
         
         .btn {
             display: inline-flex;
@@ -392,7 +391,7 @@
     <div class="container">
         <header>
             <h1>Meeting Terminabstimmung</h1>
-            <p class="description">Wähle deine bevorzugten Zeitslots. Klicke einmal für bevorzugt (max. 1), zweimal für möglich.</p>
+            <p class="description">Wähle deinen bevorzugten und möglichen Zeitslot.</p>
         </header>
         
         <div class="meta-bar">
@@ -408,11 +407,11 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-swatch primary"></div>
-                    <span>Bevorzugt (1. Wahl, max. 1)</span>
+                    <span>Bevorzugt</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-swatch secondary"></div>
-                    <span>Möglich (2. Wahl)</span>
+                    <span>Möglich</span>
                 </div>
             </div>
             
@@ -493,7 +492,7 @@
     <script>
         // Configuration
         const CONFIG = {
-            storageUrl: 'https://jsonblob.com/api/jsonBlob/019c2eb7-3f9d-7011-8d8d-718ef7d090e6',
+            storageUrl: 'https://extendsclass.com/api/json-storage/bin/fcebecf',
             days: [
                 { full: "Mo 10.02.", short: "Mo" },
                 { full: "Di 11.02.", short: "Di" },
@@ -604,25 +603,36 @@
             const voterData = votes.find(v => v.course === currentVoter);
             if (!voterData) return '';
             if (voterData.primary === slot) return 'primary';
-            if ((voterData.secondary || []).includes(slot)) return 'secondary';
+            if (voterData.secondary === slot) return 'secondary';
             return '';
         }
 
         function cycleSlot(btn) {
             const currentState = btn.dataset.state || '';
+            const slot = btn.dataset.slot;
+            
+            // Get existing selections
+            const existingPrimary = document.querySelector('.slot-btn[data-state="primary"]');
+            const existingSecondary = document.querySelector('.slot-btn[data-state="secondary"]');
             
             if (currentState === '') {
-                // Check if there's already a primary
-                const existingPrimary = document.querySelector('.slot-btn[data-state="primary"]');
-                if (existingPrimary) {
-                    // Already have a primary, go straight to secondary
+                // Empty slot clicked
+                if (!existingPrimary) {
+                    // No primary yet, set as primary
+                    btn.dataset.state = 'primary';
+                } else if (!existingSecondary) {
+                    // Has primary but no secondary, set as secondary
                     btn.dataset.state = 'secondary';
                 } else {
-                    btn.dataset.state = 'primary';
+                    // Both exist, replace secondary
+                    existingSecondary.dataset.state = '';
+                    btn.dataset.state = 'secondary';
                 }
             } else if (currentState === 'primary') {
-                btn.dataset.state = 'secondary';
-            } else {
+                // Clear primary
+                btn.dataset.state = '';
+            } else if (currentState === 'secondary') {
+                // Clear secondary
                 btn.dataset.state = '';
             }
         }
@@ -678,13 +688,11 @@
                     stats[vote.primary].total++;
                     stats[vote.primary].score += 2;
                 }
-                (vote.secondary || []).forEach(slot => {
-                    if (stats[slot]) {
-                        stats[slot].secondary++;
-                        stats[slot].total++;
-                        stats[slot].score += 1;
-                    }
-                });
+                if (vote.secondary && stats[vote.secondary]) {
+                    stats[vote.secondary].secondary++;
+                    stats[vote.secondary].total++;
+                    stats[vote.secondary].score += 1;
+                }
             });
             
             return stats;
@@ -713,14 +721,11 @@
             }
             
             const primaryBtn = document.querySelector('.slot-btn[data-state="primary"]');
+            const secondaryBtn = document.querySelector('.slot-btn[data-state="secondary"]');
             const primary = primaryBtn ? primaryBtn.dataset.slot : null;
-            const secondary = [];
+            const secondary = secondaryBtn ? secondaryBtn.dataset.slot : null;
             
-            document.querySelectorAll('.slot-btn[data-state="secondary"]').forEach(btn => {
-                secondary.push(btn.dataset.slot);
-            });
-            
-            if (!primary && secondary.length === 0) {
+            if (!primary && !secondary) {
                 showMessage('Bitte wähle mindestens einen Zeitslot.', 'error');
                 return;
             }
@@ -817,9 +822,9 @@
                         ? `<span class="slot-tag primary">${v.primary.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
                         : '<span style="color: var(--gray-400)">-</span>';
                     
-                    const secondaryTags = (v.secondary || []).map(s =>
-                        `<span class="slot-tag secondary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
-                    ).join('') || '<span style="color: var(--gray-400)">-</span>';
+                    const secondaryTag = v.secondary
+                        ? `<span class="slot-tag secondary">${v.secondary.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                        : '<span style="color: var(--gray-400)">-</span>';
                     
                     const time = v.timestamp ? new Date(v.timestamp).toLocaleString('de-DE', {
                         day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
@@ -829,7 +834,7 @@
                         <tr>
                             <td class="voter-name">${v.course}</td>
                             <td><div class="slot-tags">${primaryTag}</div></td>
-                            <td><div class="slot-tags">${secondaryTags}</div></td>
+                            <td><div class="slot-tags">${secondaryTag}</div></td>
                             <td class="meta-cell">${time}</td>
                         </tr>
                     `;
