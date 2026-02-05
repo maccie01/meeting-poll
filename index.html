@@ -487,16 +487,52 @@
         
         /* Print Styles */
         @media print {
+            * { font-size: 11px !important; }
             body { background: white; }
-            .container { padding: 20px; max-width: none; }
+            .container { padding: 10px; max-width: none; }
             .admin-header button { display: none; }
+            .admin-stats { gap: 8px; }
+            .stat-box { padding: 8px 12px; min-width: auto; }
+            .stat-value { font-size: 16px !important; }
+            .stat-label { font-size: 9px !important; }
             .hidden { display: none !important; }
-            header { margin-bottom: 24px; padding-bottom: 16px; }
-            section { page-break-inside: avoid; margin-bottom: 24px; }
+            header { margin-bottom: 12px; padding-bottom: 8px; }
+            h1 { font-size: 18px !important; }
+            h2 { font-size: 12px !important; margin-bottom: 8px; }
+            section { page-break-inside: avoid; margin-bottom: 16px; }
+            .legend { margin-bottom: 8px; gap: 12px; }
+            .legend-swatch { width: 12px; height: 12px; }
             .results-calendar { border: 1px solid #ccc; }
-            .calendar-header, .calendar-time { background: #f5f5f5 !important; }
-            .result-cell { border: 1px solid #eee; }
-            .rank-item { border-bottom: 1px solid #eee; }
+            .calendar-header, .calendar-time { 
+                background: #f5f5f5 !important; 
+                padding: 4px 2px !important;
+                font-size: 9px !important;
+            }
+            .result-cell { border: 1px solid #eee; min-height: 32px !important; }
+            .result-label .score { 
+                font-size: 10px !important; 
+                min-width: 20px; 
+                min-height: 20px;
+                padding: 2px;
+            }
+            .rank-item { 
+                padding: 6px 0; 
+                border-bottom: 1px solid #eee;
+                grid-template-columns: 24px 1fr auto;
+                gap: 8px;
+            }
+            .rank-pos { font-size: 12px !important; }
+            .rank-slot { font-size: 11px !important; }
+            .rank-stats .score { font-size: 11px !important; }
+            .rank-stats .breakdown { font-size: 9px !important; }
+            .voters-table th, .voters-table td { 
+                padding: 4px 6px !important; 
+                font-size: 10px !important;
+            }
+            .slot-tag { 
+                font-size: 8px !important; 
+                padding: 1px 4px !important;
+            }
             footer { display: none; }
         }
         
@@ -670,10 +706,9 @@
                     <table class="voters-table" id="votersTable">
                         <thead>
                             <tr>
-                                <th>Kurs</th>
+                                <th>Kurs (Anzahl)</th>
                                 <th>Bevorzugt</th>
                                 <th>Möglich</th>
-                                <th>Zeit</th>
                             </tr>
                         </thead>
                         <tbody id="votersBody"></tbody>
@@ -693,11 +728,11 @@
             binId: '6984eddfd0ea881f40a39e98',
             apiKey: '$2a$10$b9ndxCm6OP1TyFLhoe2jiu1C2Jp2p1Id43v18YsvM3xTwM8bePUsK',
             days: [
-                { full: "Mo 10.02.", short: "Mo" },
-                { full: "Di 11.02.", short: "Di" },
-                { full: "Mi 12.02.", short: "Mi" },
-                { full: "Do 13.02.", short: "Do" },
-                { full: "Fr 14.02.", short: "Fr" }
+                { full: "Mo 10.02.", short: "Mo", name: "Montag" },
+                { full: "Di 11.02.", short: "Di", name: "Dienstag" },
+                { full: "Mi 12.02.", short: "Mi", name: "Mittwoch" },
+                { full: "Do 13.02.", short: "Do", name: "Donnerstag" },
+                { full: "Fr 14.02.", short: "Fr", name: "Freitag" }
             ],
             times: [
                 { start: "16:30", end: "17:00" },
@@ -1019,6 +1054,27 @@
             setTimeout(() => msg.classList.add('hidden'), 5000);
         }
 
+        // Convert slot to readable day name format
+        function slotToDayName(slot) {
+            const time = slot.replace(/^\w+ \d+\.\d+\. /, '');
+            for (const day of CONFIG.days) {
+                if (slot.startsWith(day.full.split(' ')[0])) {
+                    return `${day.name} ${time}`;
+                }
+            }
+            return time;
+        }
+        
+        function slotToShortDay(slot) {
+            const time = slot.replace(/^\w+ \d+\.\d+\. /, '');
+            for (const day of CONFIG.days) {
+                if (slot.startsWith(day.full.split(' ')[0])) {
+                    return `${day.short} ${time}`;
+                }
+            }
+            return time;
+        }
+
         // Admin view
         function renderAdmin() {
             const stats = getSlotStats();
@@ -1030,9 +1086,9 @@
                 .filter(([_, s]) => s.score > 0)
                 .sort((a, b) => b[1].score - a[1].score);
             
-            // Best slot
+            // Best slot with day name
             if (ranked.length > 0) {
-                const best = ranked[0][0].replace(/^\w+ /, '');
+                const best = slotToDayName(ranked[0][0]);
                 document.getElementById('adminBestSlot').textContent = best;
             } else {
                 document.getElementById('adminBestSlot').textContent = '-';
@@ -1041,7 +1097,7 @@
             // Render results calendar for admin
             renderAdminResultsCalendar(stats);
             
-            // Ranking list
+            // Ranking list with day names
             const rankingList = document.getElementById('rankingList');
             if (ranked.length === 0) {
                 rankingList.innerHTML = '<p style="color: var(--gray-500); padding: 20px 0;">Noch keine Stimmen.</p>';
@@ -1050,11 +1106,10 @@
                 let lastScore = -1;
                 rankingList.innerHTML = ranked.map(([slot, s]) => {
                     if (s.score !== lastScore) { pos++; lastScore = s.score; }
-                    const shortSlot = slot.replace(/^\w+ /, '');
                     return `
                         <div class="rank-item">
                             <div class="rank-pos ${pos <= 3 ? 'top' : ''}">${pos}</div>
-                            <div class="rank-slot">${shortSlot}</div>
+                            <div class="rank-slot">${slotToDayName(slot)}</div>
                             <div class="rank-stats">
                                 <div class="score">${s.score} Punkte</div>
                                 <div class="breakdown">${s.primary} bevorzugt, ${s.secondary} möglich</div>
@@ -1064,34 +1119,54 @@
                 }).join('');
             }
             
-            document.getElementById('votersTitle').textContent = `Teilnehmer (${votes.length})`;
+            // Group votes by course for compact view
+            const courseGroups = {};
+            votes.forEach(v => {
+                const course = v.course;
+                if (!courseGroups[course]) {
+                    courseGroups[course] = { count: 0, primaries: {}, secondaries: {} };
+                }
+                courseGroups[course].count++;
+                
+                const primaries = Array.isArray(v.primary) ? v.primary : (v.primary ? [v.primary] : []);
+                const secondaries = Array.isArray(v.secondary) ? v.secondary : (v.secondary ? [v.secondary] : []);
+                
+                primaries.forEach(s => {
+                    const key = slotToShortDay(s);
+                    courseGroups[course].primaries[key] = (courseGroups[course].primaries[key] || 0) + 1;
+                });
+                secondaries.forEach(s => {
+                    const key = slotToShortDay(s);
+                    courseGroups[course].secondaries[key] = (courseGroups[course].secondaries[key] || 0) + 1;
+                });
+            });
+            
+            document.getElementById('votersTitle').textContent = `Kurse (${Object.keys(courseGroups).length} Kurse, ${votes.length} Stimmen)`;
             const tbody = document.getElementById('votersBody');
             
             if (votes.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="color: var(--gray-500)">Noch keine Stimmen.</td></tr>';
             } else {
-                tbody.innerHTML = votes.map(v => {
-                    const primaries = Array.isArray(v.primary) ? v.primary : (v.primary ? [v.primary] : []);
-                    const secondaries = Array.isArray(v.secondary) ? v.secondary : (v.secondary ? [v.secondary] : []);
+                const sortedCourses = Object.keys(courseGroups).sort();
+                tbody.innerHTML = sortedCourses.map(course => {
+                    const g = courseGroups[course];
                     
-                    const primaryTags = primaries.length > 0
-                        ? primaries.map(s => `<span class="slot-tag primary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`).join('')
-                        : '<span style="color: var(--gray-400)">-</span>';
+                    const primaryList = Object.entries(g.primaries)
+                        .sort((a,b) => b[1] - a[1])
+                        .map(([slot, count]) => `<span class="slot-tag primary">${slot}${count > 1 ? ` (${count})` : ''}</span>`)
+                        .join('') || '<span style="color: var(--gray-400)">-</span>';
                     
-                    const secondaryTags = secondaries.length > 0
-                        ? secondaries.map(s => `<span class="slot-tag secondary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`).join('')
-                        : '<span style="color: var(--gray-400)">-</span>';
-                    
-                    const time = v.timestamp ? new Date(v.timestamp).toLocaleString('de-DE', {
-                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                    }) : '-';
+                    const secondaryList = Object.entries(g.secondaries)
+                        .sort((a,b) => b[1] - a[1])
+                        .map(([slot, count]) => `<span class="slot-tag secondary">${slot}${count > 1 ? ` (${count})` : ''}</span>`)
+                        .join('') || '<span style="color: var(--gray-400)">-</span>';
                     
                     return `
                         <tr>
-                            <td class="voter-name">${v.course}</td>
-                            <td><div class="slot-tags">${primaryTags}</div></td>
-                            <td><div class="slot-tags">${secondaryTags}</div></td>
-                            <td class="meta-cell">${time}</td>
+                            <td class="voter-name">${course} <span style="color: var(--gray-400)">(${g.count})</span></td>
+                            <td><div class="slot-tags">${primaryList}</div></td>
+                            <td><div class="slot-tags">${secondaryList}</div></td>
+                            <td></td>
                         </tr>
                     `;
                 }).join('');
