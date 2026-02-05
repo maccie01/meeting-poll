@@ -177,6 +177,28 @@
             box-shadow: 0 0 0 1px var(--black);
         }
         
+        .field input[type="text"] {
+            width: 100%;
+            max-width: 320px;
+            padding: 12px 16px;
+            background-color: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 0;
+            font-size: 16px;
+            font-family: inherit;
+            margin-bottom: 8px;
+        }
+        
+        .field input[type="text"]:focus {
+            outline: none;
+            border-color: var(--black);
+            box-shadow: 0 0 0 1px var(--black);
+        }
+        
+        .field input[type="text"]::placeholder {
+            color: var(--gray-400);
+        }
+        
         /* Calendar Grid */
         .calendar {
             display: grid;
@@ -589,9 +611,13 @@
                 max-width: none;
             }
             
-            .field select {
+            .field select,
+            .field input[type="text"] {
                 max-width: none;
                 font-size: 16px; /* Prevents iOS zoom on focus */
+            }
+            
+            .field select {
                 min-height: 50px;
             }
         }
@@ -641,21 +667,59 @@
                     <h2>Verfügbarkeit angeben</h2>
                     
                     <div class="field">
-                        <label for="course">Kurs / Jahrgang</label>
+                        <label for="courseSearch">Kurs suchen</label>
+                        <input type="text" id="courseSearch" placeholder="z.B. ITS24, Informatik, Security..." autocomplete="off">
                         <select id="course" name="course" required>
                             <option value="">Bitte auswählen...</option>
-                            <option value="TINF22">TINF22</option>
-                            <option value="TINF23">TINF23</option>
-                            <option value="TINF24">TINF24</option>
-                            <option value="TINF25">TINF25</option>
-                            <option value="TWIE22">TWIE22</option>
-                            <option value="TWIE23">TWIE23</option>
-                            <option value="TWIE24">TWIE24</option>
-                            <option value="TWIE25">TWIE25</option>
-                            <option value="TWW22">TWW22</option>
-                            <option value="TWW23">TWW23</option>
-                            <option value="TWW24">TWW24</option>
-                            <option value="TWW25">TWW25</option>
+                            <optgroup label="Informatik">
+                                <option value="ITI23">ITI23 – Informationstechnik</option>
+                                <option value="ITI24">ITI24 – Informationstechnik</option>
+                                <option value="ITI25">ITI25 – Informationstechnik</option>
+                                <option value="ITA23">ITA23 – IT-Automotive</option>
+                                <option value="ITA24">ITA24 – IT-Automotive</option>
+                                <option value="ITA25">ITA25 – IT-Automotive</option>
+                                <option value="ITS23">ITS23 – IT-Security</option>
+                                <option value="ITS24">ITS24 – IT-Security</option>
+                                <option value="ITS25">ITS25 – IT-Security</option>
+                                <option value="ITM23">ITM23 – Mobile Informatik</option>
+                                <option value="ITM24">ITM24 – Mobile Informatik</option>
+                                <option value="ITC23">ITC23 – Computer Data Science</option>
+                                <option value="ITC24">ITC24 – Computer Data Science</option>
+                                <option value="ITKI24">ITKI24 – Künstliche Intelligenz</option>
+                                <option value="ITIS23">ITIS23 – Intelligente Systeme</option>
+                            </optgroup>
+                            <optgroup label="Wirtschaftsinformatik">
+                                <option value="WIFO23">WIFO23 – App. Management</option>
+                                <option value="WIFO24">WIFO24 – App. Management</option>
+                                <option value="WIFO25">WIFO25 – App. Management</option>
+                                <option value="WIFOD25">WIFOD25 – Data Science</option>
+                            </optgroup>
+                            <optgroup label="Data Science & KI">
+                                <option value="DSKI23">DSKI23 – Data Science und KI</option>
+                                <option value="DSKI24">DSKI24 – Data Science und KI</option>
+                                <option value="DSKI25">DSKI25 – Data Science und KI</option>
+                            </optgroup>
+                            <optgroup label="BWL">
+                                <option value="BWL23">BWL23 – Digital Business Mgt.</option>
+                                <option value="BWL24">BWL24 – Digital Business Mgt.</option>
+                                <option value="BWL25">BWL25 – Digital Business Mgt.</option>
+                                <option value="RSW23">RSW23 – Rechnungswesen Steuern</option>
+                                <option value="RSW24">RSW24 – Rechnungswesen Steuern</option>
+                                <option value="RSW25">RSW25 – Rechnungswesen Steuern</option>
+                            </optgroup>
+                            <optgroup label="Ingenieurwesen">
+                                <option value="WING23">WING23 – Wirtschaftsing.</option>
+                                <option value="WING24">WING24 – Wirtschaftsing.</option>
+                                <option value="WING25">WING25 – Wirtschaftsing.</option>
+                                <option value="MECHA23">MECHA23 – Mechatronik</option>
+                                <option value="MECHA24">MECHA24 – Mechatronik</option>
+                                <option value="MECHA25">MECHA25 – Mechatronik</option>
+                                <option value="MASCH24">MASCH24 – Maschinenbau</option>
+                                <option value="MASCH25">MASCH25 – Maschinenbau</option>
+                                <option value="ES24">ES24 – Embedded Systems</option>
+                                <option value="ES25">ES25 – Embedded Systems</option>
+                                <option value="ETAU25">ETAU25 – Elektro-/Infotechnik</option>
+                            </optgroup>
                         </select>
                     </div>
                     
@@ -775,9 +839,65 @@
                 renderVotingCalendar();
                 renderResultsCalendar();
                 loadCurrentVoter();
+                setupCourseSearch();
             }
             updateMeta();
         });
+        
+        // Course search/filter functionality
+        function setupCourseSearch() {
+            const searchInput = document.getElementById('courseSearch');
+            const select = document.getElementById('course');
+            const allOptions = Array.from(select.querySelectorAll('option, optgroup'));
+            const optgroups = select.querySelectorAll('optgroup');
+            
+            // Store original HTML
+            const originalHTML = select.innerHTML;
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (!query) {
+                    select.innerHTML = originalHTML;
+                    return;
+                }
+                
+                // Filter and rebuild
+                let html = '<option value="">Bitte auswählen...</option>';
+                let matchCount = 0;
+                
+                optgroups.forEach(group => {
+                    const options = group.querySelectorAll('option');
+                    const matchingOptions = Array.from(options).filter(opt => 
+                        opt.value.toLowerCase().includes(query) || 
+                        opt.textContent.toLowerCase().includes(query)
+                    );
+                    
+                    if (matchingOptions.length > 0) {
+                        html += `<optgroup label="${group.label}">`;
+                        matchingOptions.forEach(opt => {
+                            html += `<option value="${opt.value}">${opt.textContent}</option>`;
+                            matchCount++;
+                        });
+                        html += '</optgroup>';
+                    }
+                });
+                
+                select.innerHTML = html;
+                
+                // Auto-select if only one match
+                if (matchCount === 1) {
+                    select.selectedIndex = 1;
+                }
+            });
+            
+            // Clear search when selecting
+            select.addEventListener('change', () => {
+                if (select.value) {
+                    searchInput.value = '';
+                }
+            });
+        }
 
         async function loadVotes() {
             try {
