@@ -602,37 +602,24 @@
             if (!currentVoter) return '';
             const voterData = votes.find(v => v.course === currentVoter);
             if (!voterData) return '';
-            if (voterData.primary === slot) return 'primary';
-            if (voterData.secondary === slot) return 'secondary';
+            // Support both old format (single string) and new format (arrays)
+            const primaries = Array.isArray(voterData.primary) ? voterData.primary : (voterData.primary ? [voterData.primary] : []);
+            const secondaries = Array.isArray(voterData.secondary) ? voterData.secondary : (voterData.secondary ? [voterData.secondary] : []);
+            if (primaries.includes(slot)) return 'primary';
+            if (secondaries.includes(slot)) return 'secondary';
             return '';
         }
 
         function cycleSlot(btn) {
             const currentState = btn.dataset.state || '';
-            const slot = btn.dataset.slot;
             
-            // Get existing selections
-            const existingPrimary = document.querySelector('.slot-btn[data-state="primary"]');
-            const existingSecondary = document.querySelector('.slot-btn[data-state="secondary"]');
-            
+            // Simple 3-state cycle: empty → primary → secondary → empty
+            // No restrictions on how many of each type
             if (currentState === '') {
-                // Empty slot clicked
-                if (!existingPrimary) {
-                    // No primary yet, set as primary
-                    btn.dataset.state = 'primary';
-                } else if (!existingSecondary) {
-                    // Has primary but no secondary, set as secondary
-                    btn.dataset.state = 'secondary';
-                } else {
-                    // Both exist, replace secondary
-                    existingSecondary.dataset.state = '';
-                    btn.dataset.state = 'secondary';
-                }
+                btn.dataset.state = 'primary';
             } else if (currentState === 'primary') {
-                // Clear primary
-                btn.dataset.state = '';
-            } else if (currentState === 'secondary') {
-                // Clear secondary
+                btn.dataset.state = 'secondary';
+            } else {
                 btn.dataset.state = '';
             }
         }
@@ -683,16 +670,25 @@
             });
             
             votes.forEach(vote => {
-                if (vote.primary && stats[vote.primary]) {
-                    stats[vote.primary].primary++;
-                    stats[vote.primary].total++;
-                    stats[vote.primary].score += 2;
-                }
-                if (vote.secondary && stats[vote.secondary]) {
-                    stats[vote.secondary].secondary++;
-                    stats[vote.secondary].total++;
-                    stats[vote.secondary].score += 1;
-                }
+                // Support both old format (single string) and new format (arrays)
+                const primaries = Array.isArray(vote.primary) ? vote.primary : (vote.primary ? [vote.primary] : []);
+                const secondaries = Array.isArray(vote.secondary) ? vote.secondary : (vote.secondary ? [vote.secondary] : []);
+                
+                primaries.forEach(slot => {
+                    if (stats[slot]) {
+                        stats[slot].primary++;
+                        stats[slot].total++;
+                        stats[slot].score += 2;
+                    }
+                });
+                
+                secondaries.forEach(slot => {
+                    if (stats[slot]) {
+                        stats[slot].secondary++;
+                        stats[slot].total++;
+                        stats[slot].score += 1;
+                    }
+                });
             });
             
             return stats;
@@ -720,12 +716,12 @@
                 return;
             }
             
-            const primaryBtn = document.querySelector('.slot-btn[data-state="primary"]');
-            const secondaryBtn = document.querySelector('.slot-btn[data-state="secondary"]');
-            const primary = primaryBtn ? primaryBtn.dataset.slot : null;
-            const secondary = secondaryBtn ? secondaryBtn.dataset.slot : null;
+            const primaryBtns = document.querySelectorAll('.slot-btn[data-state="primary"]');
+            const secondaryBtns = document.querySelectorAll('.slot-btn[data-state="secondary"]');
+            const primary = Array.from(primaryBtns).map(b => b.dataset.slot);
+            const secondary = Array.from(secondaryBtns).map(b => b.dataset.slot);
             
-            if (!primary && !secondary) {
+            if (primary.length === 0 && secondary.length === 0) {
                 showMessage('Bitte wähle mindestens einen Zeitslot.', 'error');
                 return;
             }
@@ -818,12 +814,16 @@
                 tbody.innerHTML = '<tr><td colspan="4" style="color: var(--gray-500)">Noch keine Stimmen.</td></tr>';
             } else {
                 tbody.innerHTML = votes.map(v => {
-                    const primaryTag = v.primary 
-                        ? `<span class="slot-tag primary">${v.primary.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                    // Support both old format (single string) and new format (arrays)
+                    const primaries = Array.isArray(v.primary) ? v.primary : (v.primary ? [v.primary] : []);
+                    const secondaries = Array.isArray(v.secondary) ? v.secondary : (v.secondary ? [v.secondary] : []);
+                    
+                    const primaryTags = primaries.length > 0
+                        ? primaries.map(s => `<span class="slot-tag primary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`).join('')
                         : '<span style="color: var(--gray-400)">-</span>';
                     
-                    const secondaryTag = v.secondary
-                        ? `<span class="slot-tag secondary">${v.secondary.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                    const secondaryTags = secondaries.length > 0
+                        ? secondaries.map(s => `<span class="slot-tag secondary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`).join('')
                         : '<span style="color: var(--gray-400)">-</span>';
                     
                     const time = v.timestamp ? new Date(v.timestamp).toLocaleString('de-DE', {
@@ -833,8 +833,8 @@
                     return `
                         <tr>
                             <td class="voter-name">${v.course}</td>
-                            <td><div class="slot-tags">${primaryTag}</div></td>
-                            <td><div class="slot-tags">${secondaryTag}</div></td>
+                            <td><div class="slot-tags">${primaryTags}</div></td>
+                            <td><div class="slot-tags">${secondaryTags}</div></td>
                             <td class="meta-cell">${time}</td>
                         </tr>
                     `;
