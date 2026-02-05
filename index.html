@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Meeting Terminabstimmung</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,43 +27,48 @@
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
+        html { font-size: 16px; }
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--white);
             color: var(--black);
             line-height: 1.5;
             min-height: 100vh;
+            min-height: 100dvh;
             -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .container {
             max-width: 900px;
             margin: 0 auto;
-            padding: 64px 24px;
+            padding: 40px 16px;
         }
         
         header {
-            margin-bottom: 48px;
-            padding-bottom: 32px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
             border-bottom: 1px solid var(--gray-200);
         }
         
         h1 {
-            font-size: 32px;
+            font-size: clamp(24px, 5vw, 32px);
             font-weight: 700;
             letter-spacing: -0.02em;
             margin-bottom: 8px;
         }
         
         .description {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--gray-600);
         }
         
         .meta-bar {
             display: flex;
-            gap: 32px;
-            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            margin-bottom: 24px;
             font-size: 14px;
             color: var(--gray-500);
         }
@@ -75,8 +80,9 @@
         
         .legend {
             display: flex;
-            gap: 24px;
-            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            margin-bottom: 24px;
             font-size: 13px;
         }
         
@@ -90,25 +96,26 @@
             width: 20px;
             height: 20px;
             border: 1px solid var(--gray-200);
+            flex-shrink: 0;
         }
         
         .legend-swatch.primary { background: var(--black); }
         .legend-swatch.secondary { background: var(--gray-400); }
         
-        section { margin-bottom: 48px; }
+        section { margin-bottom: 40px; }
         
         h2 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--gray-500);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         
         .message {
-            padding: 16px 20px;
-            margin-bottom: 32px;
+            padding: 14px 16px;
+            margin-bottom: 24px;
             font-size: 14px;
             font-weight: 500;
             border-left: 3px solid;
@@ -127,8 +134,7 @@
         }
         
         .field {
-            margin-bottom: 32px;
-            max-width: 320px;
+            margin-bottom: 24px;
         }
         
         .field label {
@@ -143,9 +149,11 @@
         
         .field select {
             width: 100%;
+            max-width: 320px;
             padding: 14px 16px;
             background: var(--white);
             border: 1px solid var(--gray-300);
+            border-radius: 0;
             font-size: 16px;
             font-family: inherit;
             transition: border-color 0.15s, box-shadow 0.15s;
@@ -162,30 +170,32 @@
             box-shadow: 0 0 0 1px var(--black);
         }
         
+        /* Calendar Grid */
         .calendar {
             display: grid;
-            grid-template-columns: 100px repeat(5, 1fr);
+            grid-template-columns: 80px repeat(5, 1fr);
             gap: 1px;
             background: var(--gray-200);
             border: 1px solid var(--gray-200);
-            margin-bottom: 32px;
+            margin-bottom: 24px;
+            overflow-x: auto;
         }
         
         .calendar-header {
             background: var(--gray-100);
-            padding: 16px 8px;
+            padding: 12px 4px;
             text-align: center;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .calendar-header.corner { background: var(--white); }
         
         .calendar-time {
             background: var(--gray-50);
-            padding: 12px 8px;
+            padding: 8px 4px;
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             color: var(--gray-600);
             display: flex;
@@ -205,23 +215,28 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            min-height: 52px;
+            min-height: 48px;
             background: var(--white);
             border: none;
             cursor: pointer;
-            transition: background 0.15s;
-            font-size: 16px;
+            transition: background 0.1s, transform 0.1s;
+            font-size: 14px;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         .slot-btn:hover { background: var(--gray-100); }
+        .slot-btn:active { transform: scale(0.97); }
         .slot-btn[data-state="primary"] { background: var(--black); color: var(--white); }
         .slot-btn[data-state="secondary"] { background: var(--gray-400); color: var(--white); }
         
         .btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 16px 32px;
+            width: 100%;
+            max-width: 320px;
+            padding: 16px 24px;
             background: var(--black);
             color: var(--white);
             border: none;
@@ -231,15 +246,64 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: background 0.15s, transform 0.1s;
         }
         
         .btn:hover { background: var(--gray-800); }
-        .btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { background: var(--gray-300); cursor: not-allowed; transform: none; }
         
+        /* Results Section */
+        .results-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .best-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .best-slot.winner {
+            background: var(--black);
+            color: var(--white);
+            border-color: var(--black);
+        }
+        
+        .best-slot .rank {
+            font-size: 18px;
+            font-weight: 700;
+            opacity: 0.5;
+        }
+        
+        .best-slot.winner .rank { opacity: 1; }
+        
+        .best-slot .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .best-slot .slot-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .best-slot .slot-score {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* Results Calendar with counts */
         .results-calendar {
             display: grid;
-            grid-template-columns: 100px repeat(5, 1fr);
+            grid-template-columns: 80px repeat(5, 1fr);
             gap: 1px;
             background: var(--gray-200);
             border: 1px solid var(--gray-200);
@@ -248,7 +312,7 @@
         .result-cell {
             background: var(--white);
             padding: 0;
-            min-height: 52px;
+            min-height: 56px;
             position: relative;
             overflow: hidden;
         }
@@ -272,27 +336,62 @@
             transition: height 0.4s ease;
         }
         
+        .result-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+        
+        .result-label .score {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .result-label .breakdown {
+            font-size: 9px;
+            opacity: 0.8;
+        }
+        
+        .result-cell.has-votes .result-label {
+            color: var(--white);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .result-cell:not(.has-votes) .result-label {
+            color: var(--gray-300);
+        }
+        
+        /* Admin View */
         .ranking-list { display: flex; flex-direction: column; }
         
         .rank-item {
             display: grid;
-            grid-template-columns: 40px 1fr 140px;
-            gap: 16px;
+            grid-template-columns: 36px 1fr auto;
+            gap: 12px;
             align-items: center;
-            padding: 20px 0;
+            padding: 16px 0;
             border-bottom: 1px solid var(--gray-200);
         }
         
         .rank-item:last-child { border-bottom: none; }
         
         .rank-pos {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--gray-300);
         }
         
         .rank-pos.top { color: var(--black); }
-        .rank-slot { font-weight: 500; }
+        .rank-slot { font-weight: 500; font-size: 14px; }
         
         .rank-stats {
             font-size: 13px;
@@ -306,29 +405,37 @@
         
         .rank-stats .breakdown {
             color: var(--gray-500);
-            font-size: 12px;
+            font-size: 11px;
+        }
+        
+        /* Voters Table */
+        .voters-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .voters-table {
             width: 100%;
+            min-width: 500px;
             border-collapse: collapse;
         }
         
         .voters-table th {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--gray-500);
             text-align: left;
-            padding: 12px 16px;
+            padding: 10px 12px;
             border-bottom: 2px solid var(--gray-200);
+            white-space: nowrap;
         }
         
         .voters-table td {
-            padding: 16px;
+            padding: 12px;
             border-bottom: 1px solid var(--gray-100);
-            font-size: 14px;
+            font-size: 13px;
             vertical-align: top;
         }
         
@@ -339,59 +446,118 @@
         .slot-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
         }
         
         .slot-tag {
-            font-size: 11px;
-            padding: 3px 8px;
+            font-size: 10px;
+            padding: 2px 6px;
             font-weight: 500;
+            white-space: nowrap;
         }
         
         .slot-tag.primary { background: var(--black); color: var(--white); }
         .slot-tag.secondary { background: var(--gray-300); color: var(--gray-700); }
         
         .meta-cell {
+            font-size: 11px;
+            color: var(--gray-400);
+            white-space: nowrap;
+        }
+        
+        footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
             font-size: 12px;
             color: var(--gray-400);
         }
         
-        footer {
-            margin-top: 64px;
-            padding-top: 32px;
-            border-top: 1px solid var(--gray-200);
-            font-size: 13px;
-            color: var(--gray-400);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--gray-500);
-        }
-        
-        @media (max-width: 700px) {
-            .calendar, .results-calendar {
-                grid-template-columns: 70px repeat(5, 1fr);
-            }
-            .calendar-header, .calendar-time {
-                font-size: 11px;
-                padding: 10px 4px;
-            }
-            .legend {
-                flex-direction: column;
-                gap: 12px;
-            }
-        }
-        
         .hidden { display: none !important; }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 600px) {
+            .container { padding: 24px 12px; }
+            
+            h1 { font-size: 22px; }
+            
+            .calendar, .results-calendar {
+                grid-template-columns: 60px repeat(5, 1fr);
+            }
+            
+            .calendar-header {
+                font-size: 11px;
+                padding: 10px 2px;
+            }
+            
+            .calendar-time {
+                font-size: 9px;
+                padding: 6px 2px;
+                line-height: 1.2;
+            }
+            
+            .slot-btn {
+                min-height: 44px;
+            }
+            
+            .result-cell {
+                min-height: 52px;
+            }
+            
+            .result-label .score {
+                font-size: 14px;
+            }
+            
+            .result-label .breakdown {
+                font-size: 8px;
+            }
+            
+            .best-slot {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 140px;
+                padding: 10px 12px;
+            }
+            
+            .best-slot .rank { font-size: 16px; }
+            .best-slot .slot-name { font-size: 12px; }
+            .best-slot .slot-score { font-size: 11px; }
+            
+            .rank-item {
+                grid-template-columns: 30px 1fr auto;
+                gap: 8px;
+                padding: 12px 0;
+            }
+            
+            .rank-pos { font-size: 16px; }
+            .rank-slot { font-size: 13px; }
+            
+            .btn {
+                max-width: none;
+            }
+            
+            .field select {
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .calendar, .results-calendar {
+                grid-template-columns: 50px repeat(5, 1fr);
+            }
+            
+            .calendar-header { font-size: 10px; }
+            .calendar-time { font-size: 8px; }
+            
+            .result-label .score { font-size: 12px; }
+            .result-label .breakdown { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Meeting Terminabstimmung</h1>
-            <p class="description">Wähle deinen bevorzugten und möglichen Zeitslot.</p>
+            <p class="description">Zeitslots antippen: Schwarz = bevorzugt, Grau = möglich</p>
         </header>
         
         <div class="meta-bar">
@@ -407,11 +573,11 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-swatch primary"></div>
-                    <span>Bevorzugt</span>
+                    <span>Bevorzugt (2 Pkt)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-swatch secondary"></div>
-                    <span>Möglich</span>
+                    <span>Möglich (1 Pkt)</span>
                 </div>
             </div>
             
@@ -446,6 +612,7 @@
             
             <section>
                 <h2>Ergebnisse</h2>
+                <div class="results-summary" id="resultsSummary"></div>
                 <div class="results-calendar" id="resultsCalendar"></div>
             </section>
         </div>
@@ -470,17 +637,19 @@
             
             <section>
                 <h2 id="votersTitle">Teilnehmer (0)</h2>
-                <table class="voters-table" id="votersTable">
-                    <thead>
-                        <tr>
-                            <th>Kurs</th>
-                            <th>Bevorzugt</th>
-                            <th>Möglich</th>
-                            <th>Zeit</th>
-                        </tr>
-                    </thead>
-                    <tbody id="votersBody"></tbody>
-                </table>
+                <div class="voters-container">
+                    <table class="voters-table" id="votersTable">
+                        <thead>
+                            <tr>
+                                <th>Kurs</th>
+                                <th>Bevorzugt</th>
+                                <th>Möglich</th>
+                                <th>Zeit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="votersBody"></tbody>
+                    </table>
+                </div>
             </section>
         </div>
         
@@ -532,6 +701,7 @@
             } else {
                 renderVotingCalendar();
                 renderResultsCalendar();
+                renderResultsSummary();
                 loadCurrentVoter();
             }
             updateMeta();
@@ -585,7 +755,7 @@
             // Time rows
             CONFIG.times.forEach(time => {
                 const timeLabel = `${time.start}-${time.end}`;
-                calendar.innerHTML += `<div class="calendar-time">${timeLabel}</div>`;
+                calendar.innerHTML += `<div class="calendar-time">${time.start}<br>${time.end}</div>`;
                 CONFIG.days.forEach(day => {
                     const slot = `${day.full} ${timeLabel}`;
                     const state = getVoterSlotState(slot);
@@ -602,7 +772,6 @@
             if (!currentVoter) return '';
             const voterData = votes.find(v => v.course === currentVoter);
             if (!voterData) return '';
-            // Support both old format (single string) and new format (arrays)
             const primaries = Array.isArray(voterData.primary) ? voterData.primary : (voterData.primary ? [voterData.primary] : []);
             const secondaries = Array.isArray(voterData.secondary) ? voterData.secondary : (voterData.secondary ? [voterData.secondary] : []);
             if (primaries.includes(slot)) return 'primary';
@@ -613,8 +782,6 @@
         function cycleSlot(btn) {
             const currentState = btn.dataset.state || '';
             
-            // Simple 3-state cycle: empty → primary → secondary → empty
-            // No restrictions on how many of each type
             if (currentState === '') {
                 btn.dataset.state = 'primary';
             } else if (currentState === 'primary') {
@@ -624,10 +791,38 @@
             }
         }
 
+        function renderResultsSummary() {
+            const stats = getSlotStats();
+            const ranked = Object.entries(stats)
+                .filter(([_, s]) => s.score > 0)
+                .sort((a, b) => b[1].score - a[1].score)
+                .slice(0, 3);
+            
+            const container = document.getElementById('resultsSummary');
+            
+            if (ranked.length === 0) {
+                container.innerHTML = '<div style="color: var(--gray-400); font-size: 14px;">Noch keine Stimmen</div>';
+                return;
+            }
+            
+            container.innerHTML = ranked.map(([slot, s], i) => {
+                const shortSlot = slot.replace(/^\w+ /, '').replace(' ', ' ');
+                return `
+                    <div class="best-slot ${i === 0 ? 'winner' : ''}">
+                        <div class="rank">${i + 1}</div>
+                        <div class="info">
+                            <div class="slot-name">${shortSlot}</div>
+                            <div class="slot-score">${s.score} Pkt (${s.primary}+${s.secondary})</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function renderResultsCalendar() {
             const calendar = document.getElementById('resultsCalendar');
             const stats = getSlotStats();
-            const maxTotal = Math.max(...Object.values(stats).map(s => s.total)) || 1;
+            const maxScore = Math.max(...Object.values(stats).map(s => s.score)) || 1;
             
             calendar.innerHTML = '';
             
@@ -642,20 +837,25 @@
             // Time rows
             CONFIG.times.forEach(time => {
                 const timeLabel = `${time.start}-${time.end}`;
-                calendar.innerHTML += `<div class="calendar-time">${timeLabel}</div>`;
+                calendar.innerHTML += `<div class="calendar-time">${time.start}<br>${time.end}</div>`;
                 CONFIG.days.forEach(day => {
                     const slot = `${day.full} ${timeLabel}`;
-                    const s = stats[slot] || { primary: 0, secondary: 0, total: 0 };
-                    const totalHeight = (s.total / maxTotal) * 100;
-                    const primaryRatio = s.total > 0 ? s.primary / s.total : 0;
+                    const s = stats[slot] || { primary: 0, secondary: 0, total: 0, score: 0 };
+                    const totalHeight = (s.score / maxScore) * 100;
+                    const primaryRatio = s.score > 0 ? (s.primary * 2) / s.score : 0;
                     const primaryHeight = totalHeight * primaryRatio;
                     const secondaryHeight = totalHeight - primaryHeight;
+                    const hasVotes = s.score > 0;
                     
                     calendar.innerHTML += `
-                        <div class="result-cell">
+                        <div class="result-cell ${hasVotes ? 'has-votes' : ''}">
                             <div class="result-bar-stack">
                                 <div class="result-bar-primary" style="height: ${primaryHeight}%"></div>
                                 <div class="result-bar-secondary" style="height: ${secondaryHeight}%"></div>
+                            </div>
+                            <div class="result-label">
+                                <span class="score">${s.score}</span>
+                                ${hasVotes ? `<span class="breakdown">${s.primary}+${s.secondary}</span>` : ''}
                             </div>
                         </div>
                     `;
@@ -670,7 +870,6 @@
             });
             
             votes.forEach(vote => {
-                // Support both old format (single string) and new format (arrays)
                 const primaries = Array.isArray(vote.primary) ? vote.primary : (vote.primary ? [vote.primary] : []);
                 const secondaries = Array.isArray(vote.secondary) ? vote.secondary : (vote.secondary ? [vote.secondary] : []);
                 
@@ -726,16 +925,13 @@
                 return;
             }
             
-            // Disable button while saving
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Speichern...';
             
             try {
-                // Reload votes first to avoid conflicts
                 await loadVotes();
                 
-                // Save vote
                 const existingIdx = votes.findIndex(v => v.course === course);
                 const voteData = {
                     course,
@@ -758,6 +954,7 @@
                 showMessage('Deine Stimme wurde gespeichert.', 'success');
                 updateMeta();
                 renderResultsCalendar();
+                renderResultsSummary();
                 loadCurrentVoter();
             } catch (err) {
                 showMessage('Fehler beim Speichern. Bitte erneut versuchen.', 'error');
@@ -779,12 +976,10 @@
         function renderAdmin() {
             const stats = getSlotStats();
             
-            // Sort by score
             const ranked = Object.entries(stats)
                 .filter(([_, s]) => s.score > 0)
                 .sort((a, b) => b[1].score - a[1].score);
             
-            // Ranking
             const rankingList = document.getElementById('rankingList');
             if (ranked.length === 0) {
                 rankingList.innerHTML = '<p style="color: var(--gray-500); padding: 20px 0;">Noch keine Stimmen.</p>';
@@ -806,7 +1001,6 @@
                 }).join('');
             }
             
-            // Voters table
             document.getElementById('votersTitle').textContent = `Teilnehmer (${votes.length})`;
             const tbody = document.getElementById('votersBody');
             
@@ -814,7 +1008,6 @@
                 tbody.innerHTML = '<tr><td colspan="4" style="color: var(--gray-500)">Noch keine Stimmen.</td></tr>';
             } else {
                 tbody.innerHTML = votes.map(v => {
-                    // Support both old format (single string) and new format (arrays)
                     const primaries = Array.isArray(v.primary) ? v.primary : (v.primary ? [v.primary] : []);
                     const secondaries = Array.isArray(v.secondary) ? v.secondary : (v.secondary ? [v.secondary] : []);
                     
