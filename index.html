@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meeting Terminabstimmung</title>
+    <title>Monthly Terminabstimmung</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -323,7 +323,7 @@
         }
         
         .result-cell:not(.has-votes) .result-label {
-            color: var(--gray-300);
+            color: var(--gray-500);
         }
         
         /* Admin View */
@@ -429,7 +429,76 @@
             color: var(--gray-400);
         }
         
+        /* Admin Styles */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-stats {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .stat-box {
+            padding: 16px 24px;
+            background: var(--gray-100);
+            min-width: 120px;
+        }
+        
+        .stat-box.highlight {
+            background: var(--black);
+            color: var(--white);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        .btn-outline {
+            background: var(--white);
+            color: var(--black);
+            border: 2px solid var(--black);
+        }
+        
+        .btn-outline:hover {
+            background: var(--gray-100);
+        }
+        
+        .legend-inline {
+            margin-bottom: 16px;
+        }
+        
         .hidden { display: none !important; }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; }
+            .container { padding: 20px; max-width: none; }
+            .admin-header button { display: none; }
+            .hidden { display: none !important; }
+            header { margin-bottom: 24px; padding-bottom: 16px; }
+            section { page-break-inside: avoid; margin-bottom: 24px; }
+            .results-calendar { border: 1px solid #ccc; }
+            .calendar-header, .calendar-time { background: #f5f5f5 !important; }
+            .result-cell { border: 1px solid #eee; }
+            .rank-item { border-bottom: 1px solid #eee; }
+            footer { display: none; }
+        }
         
         /* Mobile Optimizations */
         @media (max-width: 600px) {
@@ -499,7 +568,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Meeting Terminabstimmung</h1>
+            <h1>Monthly Terminabstimmung</h1>
             <p class="description">Zeitslots antippen: Schwarz = bevorzugt, Grau = möglich</p>
         </header>
         
@@ -561,19 +630,37 @@
         
         <!-- Admin View -->
         <div id="adminView" class="hidden">
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-swatch primary"></div>
-                    <span>Bevorzugt (2 Punkte)</span>
+            <div class="admin-header">
+                <div class="admin-stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="adminVoterCount">0</div>
+                        <div class="stat-label">Teilnehmer</div>
+                    </div>
+                    <div class="stat-box highlight">
+                        <div class="stat-value" id="adminBestSlot">-</div>
+                        <div class="stat-label">Bester Termin</div>
+                    </div>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-swatch secondary"></div>
-                    <span>Möglich (1 Punkt)</span>
-                </div>
+                <button class="btn btn-outline" onclick="window.print()">Drucken / Export</button>
             </div>
             
             <section>
+                <h2>Ergebnis-Übersicht</h2>
+                <div class="results-calendar" id="adminResultsCalendar"></div>
+            </section>
+            
+            <section>
                 <h2>Ranking nach Score</h2>
+                <div class="legend legend-inline">
+                    <div class="legend-item">
+                        <div class="legend-swatch primary"></div>
+                        <span>Bevorzugt (2 Pkt)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-swatch secondary"></div>
+                        <span>Möglich (1 Pkt)</span>
+                    </div>
+                </div>
                 <div class="ranking-list" id="rankingList"></div>
             </section>
             
@@ -782,6 +869,48 @@
             });
         }
 
+        function renderAdminResultsCalendar(stats) {
+            const calendar = document.getElementById('adminResultsCalendar');
+            const maxScore = Math.max(...Object.values(stats).map(s => s.score)) || 1;
+            
+            calendar.innerHTML = '';
+            
+            // Corner
+            calendar.innerHTML += '<div class="calendar-header corner"></div>';
+            
+            // Day headers
+            CONFIG.days.forEach(day => {
+                calendar.innerHTML += `<div class="calendar-header">${day.short}</div>`;
+            });
+            
+            // Time rows
+            CONFIG.times.forEach(time => {
+                const timeLabel = `${time.start}-${time.end}`;
+                calendar.innerHTML += `<div class="calendar-time">${time.start}<br>${time.end}</div>`;
+                CONFIG.days.forEach(day => {
+                    const slot = `${day.full} ${timeLabel}`;
+                    const s = stats[slot] || { primary: 0, secondary: 0, total: 0, score: 0 };
+                    const totalHeight = (s.score / maxScore) * 100;
+                    const primaryRatio = s.score > 0 ? (s.primary * 2) / s.score : 0;
+                    const primaryHeight = totalHeight * primaryRatio;
+                    const secondaryHeight = totalHeight - primaryHeight;
+                    const hasVotes = s.score > 0;
+                    
+                    calendar.innerHTML += `
+                        <div class="result-cell ${hasVotes ? 'has-votes' : ''}">
+                            <div class="result-bar-stack">
+                                <div class="result-bar-primary" style="height: ${primaryHeight}%"></div>
+                                <div class="result-bar-secondary" style="height: ${secondaryHeight}%"></div>
+                            </div>
+                            <div class="result-label">
+                                <span class="score">${s.score}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
         function getSlotStats() {
             const stats = {};
             timeSlots.forEach(slot => {
@@ -894,10 +1023,25 @@
         function renderAdmin() {
             const stats = getSlotStats();
             
+            // Update stats
+            document.getElementById('adminVoterCount').textContent = votes.length;
+            
             const ranked = Object.entries(stats)
                 .filter(([_, s]) => s.score > 0)
                 .sort((a, b) => b[1].score - a[1].score);
             
+            // Best slot
+            if (ranked.length > 0) {
+                const best = ranked[0][0].replace(/^\w+ /, '');
+                document.getElementById('adminBestSlot').textContent = best;
+            } else {
+                document.getElementById('adminBestSlot').textContent = '-';
+            }
+            
+            // Render results calendar for admin
+            renderAdminResultsCalendar(stats);
+            
+            // Ranking list
             const rankingList = document.getElementById('rankingList');
             if (ranked.length === 0) {
                 rankingList.innerHTML = '<p style="color: var(--gray-500); padding: 20px 0;">Noch keine Stimmen.</p>';
@@ -906,10 +1050,11 @@
                 let lastScore = -1;
                 rankingList.innerHTML = ranked.map(([slot, s]) => {
                     if (s.score !== lastScore) { pos++; lastScore = s.score; }
+                    const shortSlot = slot.replace(/^\w+ /, '');
                     return `
                         <div class="rank-item">
                             <div class="rank-pos ${pos <= 3 ? 'top' : ''}">${pos}</div>
-                            <div class="rank-slot">${slot}</div>
+                            <div class="rank-slot">${shortSlot}</div>
                             <div class="rank-stats">
                                 <div class="score">${s.score} Punkte</div>
                                 <div class="breakdown">${s.primary} bevorzugt, ${s.secondary} möglich</div>
