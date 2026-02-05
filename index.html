@@ -670,7 +670,8 @@
     <script>
         // Configuration
         const CONFIG = {
-            storageUrl: 'https://extendsclass.com/api/json-storage/bin/fcebecf',
+            binId: '6984eddfd0ea881f40a39e98',
+            apiKey: '$2a$10$TcUG8RbWHs0l50lolQwQVe4X1Lc4mVioOzL1EfQjtO8efzPYs62h2',
             days: [
                 { full: "Mo 10.02.", short: "Mo" },
                 { full: "Di 11.02.", short: "Di" },
@@ -718,9 +719,11 @@
 
         async function loadVotes() {
             try {
-                const res = await fetch(CONFIG.storageUrl);
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, {
+                    headers: { 'X-Access-Key': CONFIG.apiKey }
+                });
                 const data = await res.json();
-                votes = data.votes || [];
+                votes = data.record?.votes || [];
             } catch (e) {
                 console.error('Failed to load votes:', e);
                 votes = [];
@@ -729,11 +732,15 @@
 
         async function saveVotes() {
             try {
-                await fetch(CONFIG.storageUrl, {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Access-Key': CONFIG.apiKey
+                    },
                     body: JSON.stringify({ votes, updated: new Date().toISOString() })
                 });
+                if (!res.ok) throw new Error('Save failed');
             } catch (e) {
                 console.error('Failed to save votes:', e);
                 throw e;
