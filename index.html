@@ -261,53 +261,7 @@
         .btn:disabled { background: var(--gray-300); cursor: not-allowed; transform: none; }
         
         /* Results Section */
-        .results-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .best-slot {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .best-slot.winner {
-            background: var(--black);
-            color: var(--white);
-            border-color: var(--black);
-        }
-        
-        .best-slot .rank {
-            font-size: 18px;
-            font-weight: 700;
-            opacity: 0.5;
-        }
-        
-        .best-slot.winner .rank { opacity: 1; }
-        
-        .best-slot .info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .best-slot .slot-name {
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .best-slot .slot-score {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        
-        /* Results Calendar with counts */
+        /* Results Calendar */
         .results-calendar {
             display: grid;
             grid-template-columns: 80px repeat(5, 1fr);
@@ -361,11 +315,6 @@
         .result-label .score {
             font-size: 16px;
             font-weight: 700;
-        }
-        
-        .result-label .breakdown {
-            font-size: 9px;
-            opacity: 0.8;
         }
         
         .result-cell.has-votes .result-label {
@@ -515,20 +464,6 @@
                 font-size: 14px;
             }
             
-            .result-label .breakdown {
-                font-size: 8px;
-            }
-            
-            .best-slot {
-                flex: 1 1 calc(50% - 6px);
-                min-width: 140px;
-                padding: 10px 12px;
-            }
-            
-            .best-slot .rank { font-size: 16px; }
-            .best-slot .slot-name { font-size: 12px; }
-            .best-slot .slot-score { font-size: 11px; }
-            
             .rank-item {
                 grid-template-columns: 30px 1fr auto;
                 gap: 8px;
@@ -558,7 +493,6 @@
             .calendar-time { font-size: 8px; }
             
             .result-label .score { font-size: 12px; }
-            .result-label .breakdown { display: none; }
         }
     </style>
 </head>
@@ -621,7 +555,6 @@
             
             <section>
                 <h2>Ergebnisse</h2>
-                <div class="results-summary" id="resultsSummary"></div>
                 <div class="results-calendar" id="resultsCalendar"></div>
             </section>
         </div>
@@ -711,7 +644,6 @@
             } else {
                 renderVotingCalendar();
                 renderResultsCalendar();
-                renderResultsSummary();
                 loadCurrentVoter();
             }
             updateMeta();
@@ -807,34 +739,6 @@
             }
         }
 
-        function renderResultsSummary() {
-            const stats = getSlotStats();
-            const ranked = Object.entries(stats)
-                .filter(([_, s]) => s.score > 0)
-                .sort((a, b) => b[1].score - a[1].score)
-                .slice(0, 3);
-            
-            const container = document.getElementById('resultsSummary');
-            
-            if (ranked.length === 0) {
-                container.innerHTML = '<div style="color: var(--gray-400); font-size: 14px;">Noch keine Stimmen</div>';
-                return;
-            }
-            
-            container.innerHTML = ranked.map(([slot, s], i) => {
-                const shortSlot = slot.replace(/^\w+ /, '').replace(' ', ' ');
-                return `
-                    <div class="best-slot ${i === 0 ? 'winner' : ''}">
-                        <div class="rank">${i + 1}</div>
-                        <div class="info">
-                            <div class="slot-name">${shortSlot}</div>
-                            <div class="slot-score">${s.score} Pkt (${s.primary}+${s.secondary})</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
         function renderResultsCalendar() {
             const calendar = document.getElementById('resultsCalendar');
             const stats = getSlotStats();
@@ -871,7 +775,6 @@
                             </div>
                             <div class="result-label">
                                 <span class="score">${s.score}</span>
-                                ${hasVotes ? `<span class="breakdown">${s.primary}+${s.secondary}</span>` : ''}
                             </div>
                         </div>
                     `;
@@ -970,7 +873,6 @@
                 showMessage('Deine Stimme wurde gespeichert.', 'success');
                 updateMeta();
                 renderResultsCalendar();
-                renderResultsSummary();
                 loadCurrentVoter();
             } catch (err) {
                 showMessage('Fehler beim Speichern. Bitte erneut versuchen.', 'error');
