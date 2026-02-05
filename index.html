@@ -37,7 +37,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 64px 24px;
         }
@@ -126,15 +126,9 @@
             color: var(--error);
         }
         
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+        .field {
             margin-bottom: 32px;
-        }
-        
-        @media (max-width: 540px) {
-            .form-row { grid-template-columns: 1fr; gap: 16px; }
+            max-width: 320px;
         }
         
         .field label {
@@ -147,7 +141,7 @@
             margin-bottom: 8px;
         }
         
-        .field input {
+        .field select {
             width: 100%;
             padding: 14px 16px;
             background: var(--white);
@@ -155,19 +149,22 @@
             font-size: 16px;
             font-family: inherit;
             transition: border-color 0.15s, box-shadow 0.15s;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
         }
         
-        .field input:focus {
+        .field select:focus {
             outline: none;
             border-color: var(--black);
             box-shadow: 0 0 0 1px var(--black);
         }
         
-        .field input::placeholder { color: var(--gray-400); }
-        
         .calendar {
             display: grid;
-            grid-template-columns: 60px repeat(5, 1fr);
+            grid-template-columns: 100px repeat(5, 1fr);
             gap: 1px;
             background: var(--gray-200);
             border: 1px solid var(--gray-200);
@@ -188,7 +185,7 @@
             background: var(--gray-50);
             padding: 12px 8px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--gray-600);
             display: flex;
@@ -219,6 +216,7 @@
         .slot-btn:hover { background: var(--gray-100); }
         .slot-btn[data-state="primary"] { background: var(--black); color: var(--white); }
         .slot-btn[data-state="secondary"] { background: var(--gray-400); color: var(--white); }
+        .slot-btn.disabled { opacity: 0.4; cursor: not-allowed; }
         
         .btn {
             display: inline-flex;
@@ -238,10 +236,11 @@
         }
         
         .btn:hover { background: var(--gray-800); }
+        .btn:disabled { background: var(--gray-300); cursor: not-allowed; }
         
         .results-calendar {
             display: grid;
-            grid-template-columns: 60px repeat(5, 1fr);
+            grid-template-columns: 100px repeat(5, 1fr);
             gap: 1px;
             background: var(--gray-200);
             border: 1px solid var(--gray-200);
@@ -337,7 +336,6 @@
         .voters-table tr:hover td { background: var(--gray-50); }
         
         .voter-name { font-weight: 500; }
-        .voter-email { color: var(--gray-500); font-size: 13px; }
         
         .slot-tags {
             display: flex;
@@ -367,20 +365,19 @@
             color: var(--gray-400);
         }
         
-        footer a {
+        .loading {
+            text-align: center;
+            padding: 40px;
             color: var(--gray-500);
-            text-decoration: none;
         }
         
-        footer a:hover { color: var(--black); }
-        
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .calendar, .results-calendar {
-                grid-template-columns: 50px repeat(5, 1fr);
+                grid-template-columns: 70px repeat(5, 1fr);
             }
             .calendar-header, .calendar-time {
-                font-size: 12px;
-                padding: 12px 4px;
+                font-size: 11px;
+                padding: 10px 4px;
             }
             .legend {
                 flex-direction: column;
@@ -394,13 +391,13 @@
 <body>
     <div class="container">
         <header>
-            <h1 id="pollTitle">Meeting Terminabstimmung</h1>
-            <p class="description" id="pollDescription">Wahle deine bevorzugten Zeitslots. Klicke einmal fur bevorzugt, zweimal fur moglich.</p>
+            <h1>Meeting Terminabstimmung</h1>
+            <p class="description">Wähle deine bevorzugten Zeitslots. Klicke einmal für bevorzugt (max. 1), zweimal für möglich.</p>
         </header>
         
         <div class="meta-bar">
-            <span id="voterCount">0 Teilnehmer</span>
-            <span id="slotCount">25 Zeitslots</span>
+            <span id="voterCount">Lädt...</span>
+            <span id="slotCount">20 Zeitslots</span>
             <span id="votedStatus" class="hidden voted">Abgestimmt</span>
         </div>
         
@@ -411,27 +408,35 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-swatch primary"></div>
-                    <span>Bevorzugt (1. Wahl)</span>
+                    <span>Bevorzugt (1. Wahl, max. 1)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-swatch secondary"></div>
-                    <span>Moglich (2. Wahl)</span>
+                    <span>Möglich (2. Wahl)</span>
                 </div>
             </div>
             
             <form id="pollForm">
                 <section>
-                    <h2 id="formTitle">Verfugbarkeit angeben</h2>
+                    <h2>Verfügbarkeit angeben</h2>
                     
-                    <div class="form-row">
-                        <div class="field">
-                            <label for="name">Name</label>
-                            <input type="text" id="name" name="name" required placeholder="Max Muller">
-                        </div>
-                        <div class="field">
-                            <label for="email">E-Mail (optional)</label>
-                            <input type="email" id="email" name="email" placeholder="max@example.com">
-                        </div>
+                    <div class="field">
+                        <label for="course">Kurs / Jahrgang</label>
+                        <select id="course" name="course" required>
+                            <option value="">Bitte auswählen...</option>
+                            <option value="TINF22">TINF22</option>
+                            <option value="TINF23">TINF23</option>
+                            <option value="TINF24">TINF24</option>
+                            <option value="TINF25">TINF25</option>
+                            <option value="TWIE22">TWIE22</option>
+                            <option value="TWIE23">TWIE23</option>
+                            <option value="TWIE24">TWIE24</option>
+                            <option value="TWIE25">TWIE25</option>
+                            <option value="TWW22">TWW22</option>
+                            <option value="TWW23">TWW23</option>
+                            <option value="TWW24">TWW24</option>
+                            <option value="TWW25">TWW25</option>
+                        </select>
                     </div>
                     
                     <div class="calendar" id="voteCalendar"></div>
@@ -455,7 +460,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-swatch secondary"></div>
-                    <span>Moglich (1 Punkt)</span>
+                    <span>Möglich (1 Punkt)</span>
                 </div>
             </div>
             
@@ -469,9 +474,9 @@
                 <table class="voters-table" id="votersTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Kurs</th>
                             <th>Bevorzugt</th>
-                            <th>Moglich</th>
+                            <th>Möglich</th>
                             <th>Zeit</th>
                         </tr>
                     </thead>
@@ -481,18 +486,14 @@
         </div>
         
         <footer>
-            Meeting Poll
-            <span id="footerLinks">
-                · <a href="?admin=1">Admin</a>
-            </span>
+            Studierendenvertretung Terminabstimmung
         </footer>
     </div>
 
     <script>
         // Configuration
         const CONFIG = {
-            title: "Meeting Terminabstimmung",
-            description: "Wahle deine bevorzugten Zeitslots. Klicke einmal fur bevorzugt, zweimal fur moglich.",
+            storageUrl: 'https://jsonblob.com/api/jsonBlob/019c2eb7-3f9d-7011-8d8d-718ef7d090e6',
             days: [
                 { full: "Mo 10.02.", short: "Mo" },
                 { full: "Di 11.02.", short: "Di" },
@@ -500,11 +501,16 @@
                 { full: "Do 13.02.", short: "Do" },
                 { full: "Fr 14.02.", short: "Fr" }
             ],
-            times: ["16:30", "17:00", "17:30", "18:00", "18:30"]
+            times: [
+                { start: "16:30", end: "17:00" },
+                { start: "17:00", end: "17:30" },
+                { start: "17:30", end: "18:00" },
+                { start: "18:00", end: "18:30" }
+            ]
         };
 
         // State
-        let votes = JSON.parse(localStorage.getItem('meetingPollVotes') || '[]');
+        let votes = [];
         let currentVoter = localStorage.getItem('meetingPollVoter') || '';
         const isAdmin = new URLSearchParams(window.location.search).has('admin');
 
@@ -512,16 +518,17 @@
         const timeSlots = [];
         CONFIG.days.forEach(day => {
             CONFIG.times.forEach(time => {
-                timeSlots.push(`${day.full} ${time}`);
+                timeSlots.push(`${day.full} ${time.start}-${time.end}`);
             });
         });
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadVotes();
+            
             if (isAdmin) {
                 document.getElementById('votingView').classList.add('hidden');
                 document.getElementById('adminView').classList.remove('hidden');
-                document.getElementById('footerLinks').innerHTML = '· <a href="?">Zuruck zur Abstimmung</a>';
                 renderAdmin();
             } else {
                 renderVotingCalendar();
@@ -530,6 +537,30 @@
             }
             updateMeta();
         });
+
+        async function loadVotes() {
+            try {
+                const res = await fetch(CONFIG.storageUrl);
+                const data = await res.json();
+                votes = data.votes || [];
+            } catch (e) {
+                console.error('Failed to load votes:', e);
+                votes = [];
+            }
+        }
+
+        async function saveVotes() {
+            try {
+                await fetch(CONFIG.storageUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ votes, updated: new Date().toISOString() })
+                });
+            } catch (e) {
+                console.error('Failed to save votes:', e);
+                throw e;
+            }
+        }
 
         function updateMeta() {
             document.getElementById('voterCount').textContent = `${votes.length} Teilnehmer`;
@@ -554,9 +585,10 @@
             
             // Time rows
             CONFIG.times.forEach(time => {
-                calendar.innerHTML += `<div class="calendar-time">${time}</div>`;
+                const timeLabel = `${time.start}-${time.end}`;
+                calendar.innerHTML += `<div class="calendar-time">${timeLabel}</div>`;
                 CONFIG.days.forEach(day => {
-                    const slot = `${day.full} ${time}`;
+                    const slot = `${day.full} ${timeLabel}`;
                     const state = getVoterSlotState(slot);
                     calendar.innerHTML += `
                         <div class="calendar-cell">
@@ -569,19 +601,30 @@
 
         function getVoterSlotState(slot) {
             if (!currentVoter) return '';
-            const voterData = votes.find(v => v.name.toLowerCase() === currentVoter.toLowerCase());
+            const voterData = votes.find(v => v.course === currentVoter);
             if (!voterData) return '';
-            if (voterData.primary.includes(slot)) return 'primary';
-            if (voterData.secondary.includes(slot)) return 'secondary';
+            if (voterData.primary === slot) return 'primary';
+            if ((voterData.secondary || []).includes(slot)) return 'secondary';
             return '';
         }
 
         function cycleSlot(btn) {
-            const states = ['', 'primary', 'secondary'];
             const currentState = btn.dataset.state || '';
-            const currentIdx = states.indexOf(currentState);
-            const nextIdx = (currentIdx + 1) % states.length;
-            btn.dataset.state = states[nextIdx];
+            
+            if (currentState === '') {
+                // Check if there's already a primary
+                const existingPrimary = document.querySelector('.slot-btn[data-state="primary"]');
+                if (existingPrimary) {
+                    // Already have a primary, go straight to secondary
+                    btn.dataset.state = 'secondary';
+                } else {
+                    btn.dataset.state = 'primary';
+                }
+            } else if (currentState === 'primary') {
+                btn.dataset.state = 'secondary';
+            } else {
+                btn.dataset.state = '';
+            }
         }
 
         function renderResultsCalendar() {
@@ -601,10 +644,11 @@
             
             // Time rows
             CONFIG.times.forEach(time => {
-                calendar.innerHTML += `<div class="calendar-time">${time}</div>`;
+                const timeLabel = `${time.start}-${time.end}`;
+                calendar.innerHTML += `<div class="calendar-time">${timeLabel}</div>`;
                 CONFIG.days.forEach(day => {
-                    const slot = `${day.full} ${time}`;
-                    const s = stats[slot];
+                    const slot = `${day.full} ${timeLabel}`;
+                    const s = stats[slot] || { primary: 0, secondary: 0, total: 0 };
                     const totalHeight = (s.total / maxTotal) * 100;
                     const primaryRatio = s.total > 0 ? s.primary / s.total : 0;
                     const primaryHeight = totalHeight * primaryRatio;
@@ -629,13 +673,11 @@
             });
             
             votes.forEach(vote => {
-                (vote.primary || []).forEach(slot => {
-                    if (stats[slot]) {
-                        stats[slot].primary++;
-                        stats[slot].total++;
-                        stats[slot].score += 2;
-                    }
-                });
+                if (vote.primary && stats[vote.primary]) {
+                    stats[vote.primary].primary++;
+                    stats[vote.primary].total++;
+                    stats[vote.primary].score += 2;
+                }
                 (vote.secondary || []).forEach(slot => {
                     if (stats[slot]) {
                         stats[slot].secondary++;
@@ -650,67 +692,78 @@
 
         function loadCurrentVoter() {
             if (currentVoter) {
-                const voterData = votes.find(v => v.name.toLowerCase() === currentVoter.toLowerCase());
+                const voterData = votes.find(v => v.course === currentVoter);
                 if (voterData) {
-                    document.getElementById('name').value = voterData.name;
-                    document.getElementById('email').value = voterData.email || '';
-                    document.getElementById('formTitle').textContent = 'Stimme bearbeiten';
+                    document.getElementById('course').value = voterData.course;
+                    document.querySelector('h2').textContent = 'Stimme bearbeiten';
                     document.getElementById('submitBtn').textContent = 'Aktualisieren';
                 }
             }
         }
 
         // Form submission
-        document.getElementById('pollForm').addEventListener('submit', (e) => {
+        document.getElementById('pollForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
+            const course = document.getElementById('course').value;
             
-            if (!name) {
-                showMessage('Bitte gib deinen Namen ein.', 'error');
+            if (!course) {
+                showMessage('Bitte wähle deinen Kurs aus.', 'error');
                 return;
             }
             
-            const primary = [];
+            const primaryBtn = document.querySelector('.slot-btn[data-state="primary"]');
+            const primary = primaryBtn ? primaryBtn.dataset.slot : null;
             const secondary = [];
             
-            document.querySelectorAll('.slot-btn').forEach(btn => {
-                const slot = btn.dataset.slot;
-                const state = btn.dataset.state;
-                if (state === 'primary') primary.push(slot);
-                else if (state === 'secondary') secondary.push(slot);
+            document.querySelectorAll('.slot-btn[data-state="secondary"]').forEach(btn => {
+                secondary.push(btn.dataset.slot);
             });
             
-            if (primary.length === 0 && secondary.length === 0) {
-                showMessage('Bitte wahle mindestens einen Zeitslot.', 'error');
+            if (!primary && secondary.length === 0) {
+                showMessage('Bitte wähle mindestens einen Zeitslot.', 'error');
                 return;
             }
             
-            // Save vote
-            const existingIdx = votes.findIndex(v => v.name.toLowerCase() === name.toLowerCase());
-            const voteData = {
-                name,
-                email,
-                primary,
-                secondary,
-                timestamp: new Date().toISOString()
-            };
+            // Disable button while saving
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Speichern...';
             
-            if (existingIdx >= 0) {
-                votes[existingIdx] = voteData;
-            } else {
-                votes.push(voteData);
+            try {
+                // Reload votes first to avoid conflicts
+                await loadVotes();
+                
+                // Save vote
+                const existingIdx = votes.findIndex(v => v.course === course);
+                const voteData = {
+                    course,
+                    primary,
+                    secondary,
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (existingIdx >= 0) {
+                    votes[existingIdx] = voteData;
+                } else {
+                    votes.push(voteData);
+                }
+                
+                await saveVotes();
+                
+                localStorage.setItem('meetingPollVoter', course);
+                currentVoter = course;
+                
+                showMessage('Deine Stimme wurde gespeichert.', 'success');
+                updateMeta();
+                renderResultsCalendar();
+                loadCurrentVoter();
+            } catch (err) {
+                showMessage('Fehler beim Speichern. Bitte erneut versuchen.', 'error');
             }
             
-            localStorage.setItem('meetingPollVotes', JSON.stringify(votes));
-            localStorage.setItem('meetingPollVoter', name);
-            currentVoter = name;
-            
-            showMessage('Deine Stimme wurde gespeichert.', 'success');
-            updateMeta();
-            renderResultsCalendar();
-            loadCurrentVoter();
+            submitBtn.disabled = false;
+            submitBtn.textContent = currentVoter ? 'Aktualisieren' : 'Abstimmen';
         });
 
         function showMessage(text, type) {
@@ -745,7 +798,7 @@
                             <div class="rank-slot">${slot}</div>
                             <div class="rank-stats">
                                 <div class="score">${s.score} Punkte</div>
-                                <div class="breakdown">${s.primary} bevorzugt, ${s.secondary} moglich</div>
+                                <div class="breakdown">${s.primary} bevorzugt, ${s.secondary} möglich</div>
                             </div>
                         </div>
                     `;
@@ -760,9 +813,9 @@
                 tbody.innerHTML = '<tr><td colspan="4" style="color: var(--gray-500)">Noch keine Stimmen.</td></tr>';
             } else {
                 tbody.innerHTML = votes.map(v => {
-                    const primaryTags = (v.primary || []).map(s => 
-                        `<span class="slot-tag primary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
-                    ).join('') || '<span style="color: var(--gray-400)">-</span>';
+                    const primaryTag = v.primary 
+                        ? `<span class="slot-tag primary">${v.primary.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                        : '<span style="color: var(--gray-400)">-</span>';
                     
                     const secondaryTags = (v.secondary || []).map(s =>
                         `<span class="slot-tag secondary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
@@ -774,11 +827,8 @@
                     
                     return `
                         <tr>
-                            <td>
-                                <div class="voter-name">${v.name}</div>
-                                ${v.email ? `<div class="voter-email">${v.email}</div>` : ''}
-                            </td>
-                            <td><div class="slot-tags">${primaryTags}</div></td>
+                            <td class="voter-name">${v.course}</td>
+                            <td><div class="slot-tags">${primaryTag}</div></td>
                             <td><div class="slot-tags">${secondaryTags}</div></td>
                             <td class="meta-cell">${time}</td>
                         </tr>
