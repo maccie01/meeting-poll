@@ -487,6 +487,10 @@
         
         /* Print Styles */
         @media print {
+            @page { 
+                margin: 10mm; 
+                size: auto;
+            }
             * { font-size: 11px !important; }
             body { background: white; }
             .container { padding: 10px; max-width: none; }
@@ -534,6 +538,9 @@
                 padding: 1px 4px !important;
             }
             footer { display: none; }
+            .description { display: none; }
+            .meta-bar { display: none; }
+            header { display: none; }
         }
         
         /* Mobile Optimizations */
@@ -760,8 +767,11 @@
             await loadVotes();
             
             if (isAdmin) {
+                document.body.classList.add('admin-mode');
                 document.getElementById('votingView').classList.add('hidden');
                 document.getElementById('adminView').classList.remove('hidden');
+                document.querySelector('.description').style.display = 'none';
+                document.querySelector('.meta-bar').style.display = 'none';
                 renderAdmin();
             } else {
                 renderVotingCalendar();
