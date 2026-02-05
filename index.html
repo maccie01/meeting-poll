@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Terminabstimmung</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --gray-50: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+            --success: #018a16;
+            --error: #d5001c;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.5;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 64px 24px;
+        }
+        
+        header {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+        
+        .description {
+            font-size: 16px;
+            color: var(--gray-600);
+        }
+        
+        .meta-bar {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .meta-bar .voted {
+            color: var(--success);
+            font-weight: 500;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-swatch {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .legend-swatch.primary { background: var(--black); }
+        .legend-swatch.secondary { background: var(--gray-400); }
+        
+        section { margin-bottom: 48px; }
+        
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+        
+        .message {
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 3px solid;
+        }
+        
+        .message.success {
+            background: #f0fdf4;
+            border-color: var(--success);
+            color: var(--success);
+        }
+        
+        .message.error {
+            background: #fef2f2;
+            border-color: var(--error);
+            color: var(--error);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        @media (max-width: 540px) {
+            .form-row { grid-template-columns: 1fr; gap: 16px; }
+        }
+        
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+        
+        .field input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        
+        .field input:focus {
+            outline: none;
+            border-color: var(--black);
+            box-shadow: 0 0 0 1px var(--black);
+        }
+        
+        .field input::placeholder { color: var(--gray-400); }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: 60px repeat(5, 1fr);
+            gap: 1px;
+            background: var(--gray-200);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 32px;
+        }
+        
+        .calendar-header {
+            background: var(--gray-100);
+            padding: 16px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .calendar-header.corner { background: var(--white); }
+        
+        .calendar-time {
+            background: var(--gray-50);
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .calendar-cell {
+            background: var(--white);
+            padding: 0;
+            position: relative;
+        }
+        
+        .slot-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 52px;
+            background: var(--white);
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 16px;
+        }
+        
+        .slot-btn:hover { background: var(--gray-100); }
+        .slot-btn[data-state="primary"] { background: var(--black); color: var(--white); }
+        .slot-btn[data-state="secondary"] { background: var(--gray-400); color: var(--white); }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        
+        .btn:hover { background: var(--gray-800); }
+        
+        .results-calendar {
+            display: grid;
+            grid-template-columns: 60px repeat(5, 1fr);
+            gap: 1px;
+            background: var(--gray-200);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .result-cell {
+            background: var(--white);
+            padding: 0;
+            min-height: 52px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-bar-stack {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        
+        .result-bar-primary {
+            background: var(--black);
+            transition: height 0.4s ease;
+        }
+        
+        .result-bar-secondary {
+            background: var(--gray-400);
+            transition: height 0.4s ease;
+        }
+        
+        .ranking-list { display: flex; flex-direction: column; }
+        
+        .rank-item {
+            display: grid;
+            grid-template-columns: 40px 1fr 140px;
+            gap: 16px;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .rank-item:last-child { border-bottom: none; }
+        
+        .rank-pos {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-300);
+        }
+        
+        .rank-pos.top { color: var(--black); }
+        .rank-slot { font-weight: 500; }
+        
+        .rank-stats {
+            font-size: 13px;
+            text-align: right;
+        }
+        
+        .rank-stats .score {
+            font-weight: 600;
+            color: var(--black);
+        }
+        
+        .rank-stats .breakdown {
+            color: var(--gray-500);
+            font-size: 12px;
+        }
+        
+        .voters-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .voters-table th {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+        
+        .voters-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 14px;
+            vertical-align: top;
+        }
+        
+        .voters-table tr:hover td { background: var(--gray-50); }
+        
+        .voter-name { font-weight: 500; }
+        .voter-email { color: var(--gray-500); font-size: 13px; }
+        
+        .slot-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .slot-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            font-weight: 500;
+        }
+        
+        .slot-tag.primary { background: var(--black); color: var(--white); }
+        .slot-tag.secondary { background: var(--gray-300); color: var(--gray-700); }
+        
+        .meta-cell {
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+        
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--gray-200);
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+        
+        footer a {
+            color: var(--gray-500);
+            text-decoration: none;
+        }
+        
+        footer a:hover { color: var(--black); }
+        
+        @media (max-width: 600px) {
+            .calendar, .results-calendar {
+                grid-template-columns: 50px repeat(5, 1fr);
+            }
+            .calendar-header, .calendar-time {
+                font-size: 12px;
+                padding: 12px 4px;
+            }
+            .legend {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="pollTitle">Meeting Terminabstimmung</h1>
+            <p class="description" id="pollDescription">Wahle deine bevorzugten Zeitslots. Klicke einmal fur bevorzugt, zweimal fur moglich.</p>
+        </header>
+        
+        <div class="meta-bar">
+            <span id="voterCount">0 Teilnehmer</span>
+            <span id="slotCount">25 Zeitslots</span>
+            <span id="votedStatus" class="hidden voted">Abgestimmt</span>
+        </div>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <!-- Voting View -->
+        <div id="votingView">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-swatch primary"></div>
+                    <span>Bevorzugt (1. Wahl)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-swatch secondary"></div>
+                    <span>Moglich (2. Wahl)</span>
+                </div>
+            </div>
+            
+            <form id="pollForm">
+                <section>
+                    <h2 id="formTitle">Verfugbarkeit angeben</h2>
+                    
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required placeholder="Max Muller">
+                        </div>
+                        <div class="field">
+                            <label for="email">E-Mail (optional)</label>
+                            <input type="email" id="email" name="email" placeholder="max@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="calendar" id="voteCalendar"></div>
+                    
+                    <button type="submit" class="btn" id="submitBtn">Abstimmen</button>
+                </section>
+            </form>
+            
+            <section>
+                <h2>Ergebnisse</h2>
+                <div class="results-calendar" id="resultsCalendar"></div>
+            </section>
+        </div>
+        
+        <!-- Admin View -->
+        <div id="adminView" class="hidden">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-swatch primary"></div>
+                    <span>Bevorzugt (2 Punkte)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-swatch secondary"></div>
+                    <span>Moglich (1 Punkt)</span>
+                </div>
+            </div>
+            
+            <section>
+                <h2>Ranking nach Score</h2>
+                <div class="ranking-list" id="rankingList"></div>
+            </section>
+            
+            <section>
+                <h2 id="votersTitle">Teilnehmer (0)</h2>
+                <table class="voters-table" id="votersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Bevorzugt</th>
+                            <th>Moglich</th>
+                            <th>Zeit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="votersBody"></tbody>
+                </table>
+            </section>
+        </div>
+        
+        <footer>
+            Meeting Poll
+            <span id="footerLinks">
+                · <a href="?admin=1">Admin</a>
+            </span>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            title: "Meeting Terminabstimmung",
+            description: "Wahle deine bevorzugten Zeitslots. Klicke einmal fur bevorzugt, zweimal fur moglich.",
+            days: [
+                { full: "Mo 10.02.", short: "Mo" },
+                { full: "Di 11.02.", short: "Di" },
+                { full: "Mi 12.02.", short: "Mi" },
+                { full: "Do 13.02.", short: "Do" },
+                { full: "Fr 14.02.", short: "Fr" }
+            ],
+            times: ["16:30", "17:00", "17:30", "18:00", "18:30"]
+        };
+
+        // State
+        let votes = JSON.parse(localStorage.getItem('meetingPollVotes') || '[]');
+        let currentVoter = localStorage.getItem('meetingPollVoter') || '';
+        const isAdmin = new URLSearchParams(window.location.search).has('admin');
+
+        // Build time slots
+        const timeSlots = [];
+        CONFIG.days.forEach(day => {
+            CONFIG.times.forEach(time => {
+                timeSlots.push(`${day.full} ${time}`);
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isAdmin) {
+                document.getElementById('votingView').classList.add('hidden');
+                document.getElementById('adminView').classList.remove('hidden');
+                document.getElementById('footerLinks').innerHTML = '· <a href="?">Zuruck zur Abstimmung</a>';
+                renderAdmin();
+            } else {
+                renderVotingCalendar();
+                renderResultsCalendar();
+                loadCurrentVoter();
+            }
+            updateMeta();
+        });
+
+        function updateMeta() {
+            document.getElementById('voterCount').textContent = `${votes.length} Teilnehmer`;
+            document.getElementById('slotCount').textContent = `${timeSlots.length} Zeitslots`;
+            
+            if (currentVoter && !isAdmin) {
+                document.getElementById('votedStatus').classList.remove('hidden');
+            }
+        }
+
+        function renderVotingCalendar() {
+            const calendar = document.getElementById('voteCalendar');
+            calendar.innerHTML = '';
+            
+            // Corner
+            calendar.innerHTML += '<div class="calendar-header corner"></div>';
+            
+            // Day headers
+            CONFIG.days.forEach(day => {
+                calendar.innerHTML += `<div class="calendar-header">${day.short}</div>`;
+            });
+            
+            // Time rows
+            CONFIG.times.forEach(time => {
+                calendar.innerHTML += `<div class="calendar-time">${time}</div>`;
+                CONFIG.days.forEach(day => {
+                    const slot = `${day.full} ${time}`;
+                    const state = getVoterSlotState(slot);
+                    calendar.innerHTML += `
+                        <div class="calendar-cell">
+                            <button type="button" class="slot-btn" data-slot="${slot}" data-state="${state}" onclick="cycleSlot(this)"></button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function getVoterSlotState(slot) {
+            if (!currentVoter) return '';
+            const voterData = votes.find(v => v.name.toLowerCase() === currentVoter.toLowerCase());
+            if (!voterData) return '';
+            if (voterData.primary.includes(slot)) return 'primary';
+            if (voterData.secondary.includes(slot)) return 'secondary';
+            return '';
+        }
+
+        function cycleSlot(btn) {
+            const states = ['', 'primary', 'secondary'];
+            const currentState = btn.dataset.state || '';
+            const currentIdx = states.indexOf(currentState);
+            const nextIdx = (currentIdx + 1) % states.length;
+            btn.dataset.state = states[nextIdx];
+        }
+
+        function renderResultsCalendar() {
+            const calendar = document.getElementById('resultsCalendar');
+            const stats = getSlotStats();
+            const maxTotal = Math.max(...Object.values(stats).map(s => s.total)) || 1;
+            
+            calendar.innerHTML = '';
+            
+            // Corner
+            calendar.innerHTML += '<div class="calendar-header corner"></div>';
+            
+            // Day headers
+            CONFIG.days.forEach(day => {
+                calendar.innerHTML += `<div class="calendar-header">${day.short}</div>`;
+            });
+            
+            // Time rows
+            CONFIG.times.forEach(time => {
+                calendar.innerHTML += `<div class="calendar-time">${time}</div>`;
+                CONFIG.days.forEach(day => {
+                    const slot = `${day.full} ${time}`;
+                    const s = stats[slot];
+                    const totalHeight = (s.total / maxTotal) * 100;
+                    const primaryRatio = s.total > 0 ? s.primary / s.total : 0;
+                    const primaryHeight = totalHeight * primaryRatio;
+                    const secondaryHeight = totalHeight - primaryHeight;
+                    
+                    calendar.innerHTML += `
+                        <div class="result-cell">
+                            <div class="result-bar-stack">
+                                <div class="result-bar-primary" style="height: ${primaryHeight}%"></div>
+                                <div class="result-bar-secondary" style="height: ${secondaryHeight}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function getSlotStats() {
+            const stats = {};
+            timeSlots.forEach(slot => {
+                stats[slot] = { primary: 0, secondary: 0, total: 0, score: 0 };
+            });
+            
+            votes.forEach(vote => {
+                (vote.primary || []).forEach(slot => {
+                    if (stats[slot]) {
+                        stats[slot].primary++;
+                        stats[slot].total++;
+                        stats[slot].score += 2;
+                    }
+                });
+                (vote.secondary || []).forEach(slot => {
+                    if (stats[slot]) {
+                        stats[slot].secondary++;
+                        stats[slot].total++;
+                        stats[slot].score += 1;
+                    }
+                });
+            });
+            
+            return stats;
+        }
+
+        function loadCurrentVoter() {
+            if (currentVoter) {
+                const voterData = votes.find(v => v.name.toLowerCase() === currentVoter.toLowerCase());
+                if (voterData) {
+                    document.getElementById('name').value = voterData.name;
+                    document.getElementById('email').value = voterData.email || '';
+                    document.getElementById('formTitle').textContent = 'Stimme bearbeiten';
+                    document.getElementById('submitBtn').textContent = 'Aktualisieren';
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('pollForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!name) {
+                showMessage('Bitte gib deinen Namen ein.', 'error');
+                return;
+            }
+            
+            const primary = [];
+            const secondary = [];
+            
+            document.querySelectorAll('.slot-btn').forEach(btn => {
+                const slot = btn.dataset.slot;
+                const state = btn.dataset.state;
+                if (state === 'primary') primary.push(slot);
+                else if (state === 'secondary') secondary.push(slot);
+            });
+            
+            if (primary.length === 0 && secondary.length === 0) {
+                showMessage('Bitte wahle mindestens einen Zeitslot.', 'error');
+                return;
+            }
+            
+            // Save vote
+            const existingIdx = votes.findIndex(v => v.name.toLowerCase() === name.toLowerCase());
+            const voteData = {
+                name,
+                email,
+                primary,
+                secondary,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (existingIdx >= 0) {
+                votes[existingIdx] = voteData;
+            } else {
+                votes.push(voteData);
+            }
+            
+            localStorage.setItem('meetingPollVotes', JSON.stringify(votes));
+            localStorage.setItem('meetingPollVoter', name);
+            currentVoter = name;
+            
+            showMessage('Deine Stimme wurde gespeichert.', 'success');
+            updateMeta();
+            renderResultsCalendar();
+            loadCurrentVoter();
+        });
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.classList.remove('hidden');
+            setTimeout(() => msg.classList.add('hidden'), 5000);
+        }
+
+        // Admin view
+        function renderAdmin() {
+            const stats = getSlotStats();
+            
+            // Sort by score
+            const ranked = Object.entries(stats)
+                .filter(([_, s]) => s.score > 0)
+                .sort((a, b) => b[1].score - a[1].score);
+            
+            // Ranking
+            const rankingList = document.getElementById('rankingList');
+            if (ranked.length === 0) {
+                rankingList.innerHTML = '<p style="color: var(--gray-500); padding: 20px 0;">Noch keine Stimmen.</p>';
+            } else {
+                let pos = 0;
+                let lastScore = -1;
+                rankingList.innerHTML = ranked.map(([slot, s]) => {
+                    if (s.score !== lastScore) { pos++; lastScore = s.score; }
+                    return `
+                        <div class="rank-item">
+                            <div class="rank-pos ${pos <= 3 ? 'top' : ''}">${pos}</div>
+                            <div class="rank-slot">${slot}</div>
+                            <div class="rank-stats">
+                                <div class="score">${s.score} Punkte</div>
+                                <div class="breakdown">${s.primary} bevorzugt, ${s.secondary} moglich</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Voters table
+            document.getElementById('votersTitle').textContent = `Teilnehmer (${votes.length})`;
+            const tbody = document.getElementById('votersBody');
+            
+            if (votes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color: var(--gray-500)">Noch keine Stimmen.</td></tr>';
+            } else {
+                tbody.innerHTML = votes.map(v => {
+                    const primaryTags = (v.primary || []).map(s => 
+                        `<span class="slot-tag primary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                    ).join('') || '<span style="color: var(--gray-400)">-</span>';
+                    
+                    const secondaryTags = (v.secondary || []).map(s =>
+                        `<span class="slot-tag secondary">${s.replace(/^\w+ \d+\.\d+\. /, '')}</span>`
+                    ).join('') || '<span style="color: var(--gray-400)">-</span>';
+                    
+                    const time = v.timestamp ? new Date(v.timestamp).toLocaleString('de-DE', {
+                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                    }) : '-';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="voter-name">${v.name}</div>
+                                ${v.email ? `<div class="voter-email">${v.email}</div>` : ''}
+                            </td>
+                            <td><div class="slot-tags">${primaryTags}</div></td>
+                            <td><div class="slot-tags">${secondaryTags}</div></td>
+                            <td class="meta-cell">${time}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+    </script>
+</body>
+</html>
