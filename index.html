@@ -302,28 +302,28 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 12px;
-            font-weight: 600;
             z-index: 1;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1px;
         }
         
         .result-label .score {
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            min-height: 28px;
+            font-size: 14px;
             font-weight: 700;
+            background: var(--white);
+            color: var(--black);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
         
-        .result-cell.has-votes .result-label {
-            color: var(--white);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        
-        .result-cell:not(.has-votes) .result-label {
-            color: var(--gray-500);
+        .result-cell:not(.has-votes) .result-label .score {
+            background: transparent;
+            color: var(--gray-400);
+            box-shadow: none;
         }
         
         /* Admin View */
